@@ -7,11 +7,14 @@ date_fact = pd.to_datetime('today');
 firstDayOfMonth = pd.Timestamp(date_fact.year, date_fact.month, 1);
 lastDayOfMonth = firstDayOfMonth + MonthEnd(1);
 
-# moves = dataset;
-moves=pd.read_csv('./etmf-smat-mouvements.csv', sep=';')
+moves = dataset;
+# moves = pd.read_csv('./etmf-smat-mouvements.csv', sep=';')
 
-moves['date_depart'] = pd.to_datetime(moves['date_depart']);
-moves['date_arrivee'] = pd.to_datetime(moves['date_arrivee']);
+moves['date_depart'] = pd.to_datetime(moves['date_depart'], format='%d/%m/%Y');
+moves['date_arrivee'] = pd.to_datetime(moves['date_arrivee'], format='%d/%m/%Y');
+print(moves['date_depart'])
+print(moves['date_arrivee'])
+
 
 moves = moves.sort_values(by='date_depart', ascending=False);
 
@@ -57,12 +60,12 @@ for machine, affectations in mouvements_par_matos.items():
     for affectation in affectations:
         nb_jours = 0;
         day = affectation['date_debut'];
-        print(machine, day)
-        while day < affectation['date_fin']:
+        # print(machine, day)
+        while day <= affectation['date_fin']:
             if day.weekday() in [0,1,2,3,4]:
                 nb_jours += 1;
             day = day + pd.Timedelta(1, 'days')
-        print(machine, day)
+        # print(machine, day)
 
         new_item = (
             machine,
@@ -76,5 +79,5 @@ for machine, affectations in mouvements_par_matos.items():
 
 # print(pointages)
 pointages = np.array(pointages)
-pointages = pd.DataFrame.from_records(pointages, columns=['materiel', 'affectation', 'debut', 'fin', 'nb_jours']);
-print(pointages)
+pointages = pd.DataFrame.from_records(pointages, columns=['materiel', 'affectation', 'debut', 'fin', 'nb_jours_ouvres']);
+# print(pointages)
