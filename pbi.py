@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
-from pandas.tseries.offsets import MonthEnd
+from pandas._libs.tslibs.timedeltas import Timedelta
+from pandas.tseries.offsets import MonthBegin, MonthEnd
 
 
 date_fact = pd.to_datetime('today');
 firstDayOfMonth = pd.Timestamp(date_fact.year, date_fact.month, 1);
-lastDayOfMonth = firstDayOfMonth + MonthEnd(1);
+lastDayOfMonth = firstDayOfMonth + MonthEnd(0);
 
 moves = dataset;
 # moves = pd.read_csv('./etmf-smat-mouvements.csv', sep=';')
@@ -41,6 +42,8 @@ for index, move in moves.iterrows():
     else:
 
         mouvements_par_matos[materiel]=[]
+
+    print(date_debut, date_debut + MonthEnd(0))
 
     new_item = {
         'imputation' : chantier,
@@ -78,6 +81,38 @@ for machine, affectations in mouvements_par_matos.items():
         pointages.append(new_item);
 
 # print(pointages)
-pointages = np.array(pointages)
-pointages = pd.DataFrame.from_records(pointages, columns=['materiel', 'affectation', 'debut', 'fin', 'nb_jours_ouvres']);
-# print(pointages)
+pointages_detailed = []
+
+for pointage in pointages:
+    date_debut = pointage[2];
+    date_fin = pointage[3]
+    date_intermediaire = date_debut + MonthEnd(0);
+    nb_jours = pd.bdate_range(date_debut, date_intermediaire);
+    
+    while date_intermediaire < date_fin:
+        new_item = (
+            pointage[0],
+            pointage [1],
+            date_debut,
+            date_intermediaire,
+            len(nb_jours)
+        )
+        pointages_detailed.append(new_item)
+        date_debut = date_intermediaire + pd.Timedelta(1, 'days');
+        date_intermediaire = date_debut + MonthEnd(0);
+        nb_jours = pd.bdate_range(date_debut, date_intermediaire);
+
+    nb_jours = pd.bdate_range(date_debut, date_fin);
+    new_item = (
+        pointage[0],
+        pointage [1],
+        date_debut,
+        date_fin,
+        len(nb_jours)
+    );
+    pointages_detailed.append(new_item);
+
+
+pointages_detailed = np.array(pointages_detailed)
+pointages_detailed = pd.DataFrame.from_records(pointages_detailed, columns=['materiel', 'affectation', 'debut', 'fin', 'nb_jours_ouvres']);
+# print(pointages_detailed)
